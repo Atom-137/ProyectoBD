@@ -181,8 +181,13 @@ AS
 CREATE FUNCTION devolverSaldo(@total money, @anticipo money)
     RETURNS  money
 AS
-    RETURN @total - @anticipo;
-;
+BEGIN
+    DECLARE @saldo money
+
+    SET @saldo = @total - @anticipo
+
+    RETURN @saldo
+END;
 
 
 CREATE TRIGGER actualizarOrden
