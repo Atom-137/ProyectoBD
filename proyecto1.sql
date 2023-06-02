@@ -114,17 +114,26 @@ CREATE PROCEDURE accionOrden @accion varchar(10),
     @descripcion  varchar(50),
     @fechaEntrega date,
     @anticipo     money,
-    @saldo        money,
     @total        money
 AS
     IF(@accion = 'insertar')
     BEGIN
-        INSERT INTO dbo.orden (idCliente, idEstado, fechaOrden, descripcion, fechaEntrega, anticipo, saldo, total)
-        VALUES (@idCliente, @idEstado, @fechaOrden, @descripcion, @fechaEntrega, @anticipo, @saldo, @total);
+
+        INSERT INTO dbo.orden (idCliente, idEstado, fechaOrden, descripcion, fechaEntrega, anticipo,total)
+        VALUES (@idCliente, @idEstado, @fechaOrden, @descripcion, @fechaEntrega, @anticipo, @total);
     END
     ELSE IF(@accion = 'actualizar')
     BEGIN
-        UPDATE dbo.orden SET idEstado = @idEstado WHERE idOrden = @idOrden;
+        IF(@idEstado != 5)
+        BEGIN
+            UPDATE dbo.orden SET idEstado = @idEstado WHERE idOrden = @idOrden;
+        END
+        ELSE IF (@idEstado = 5 AND ((SELECT total FROM orden) = (SELECT saldo FROM orden)))
+        BEGIN
+            UPDATE dbo.orden SET idEstado = @idEstado WHERE idOrden = @idOrden;
+        END
+        ELSE
+            SELECT 'La orden tiene saldo pendiente';
     END
     ELSE IF(@accion = 'eliminar')
     BEGIN
@@ -161,12 +170,45 @@ AS
     SELECT * FROM vstDetalleOrden WHERE idCliente = @nit;
 GO;
 
+
 CREATE FUNCTION obtenerDatosCliente(@nit varchar(10))
     RETURNS TABLE
 AS
-
-        IF EXISTS (SELECT * FROM dbo.clientes WHERE nit = @nit)
-        BEGIN
-           RETURN (SELECT * FROM dbo.clientes WHERE nit = @nit)
-        END
+    RETURN (SELECT * FROM dbo.clientes WHERE nit = @nit)
 ;
+
+
+CREATE FUNCTION devolverSaldo(@total money, @anticipo money)
+    RETURNS  money
+AS
+    RETURN @total - @anticipo;
+;
+
+
+CREATE TRIGGER actualizarOrden
+    ON orden
+    AFTER INSERT
+AS
+    DECLARE @saldo money;
+    DECLARE @total money;
+    DECLARE @anticipo money;
+
+    IF((SELECT COUNT(*) FROM inserted)>0)
+    BEGIN
+        SET @total      = (select total from inserted);
+        SET @anticipo   = (select anticipo from inserted);
+        SET @saldo      = dbo.devolverSaldo(@total,@anticipo);
+
+        UPDATE orden SET saldo = @saldo,idEstado = 2
+                    WHERE idOrden = (SELECT idOrden FROM inserted);
+
+    END
+GO;
+
+
+INSERT INTO estado(nombre) VALUES ('disenio');
+INSERT INTO estado(nombre) VALUES ('enCola');
+INSERT INTO estado(nombre) VALUES ('impresion');
+INSERT INTO estado(nombre) VALUES ('listo');
+INSERT INTO estado(nombre) VALUES ('entregado');
+SELECT * from estado;
