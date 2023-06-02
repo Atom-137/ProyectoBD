@@ -106,7 +106,7 @@ AS
     END
 GO;
 
-CREATE PROCEDURE accionOrden @accion varchar(10),
+ALTER PROCEDURE accionOrden @accion varchar(10),
     @idOrden      int,
     @idCliente    varchar(10),
     @idEstado     int,
@@ -118,9 +118,16 @@ CREATE PROCEDURE accionOrden @accion varchar(10),
 AS
     IF(@accion = 'insertar')
     BEGIN
+        IF((SELECT COUNT(*) FROM clientes where nit = @idCliente) > 0)
+        BEGIN
+            INSERT INTO dbo.orden (idCliente, idEstado, fechaOrden, descripcion, fechaEntrega, anticipo,total)
+            VALUES (@idCliente, @idEstado, @fechaOrden, @descripcion, @fechaEntrega, @anticipo, @total);
+        END
+        ELSE
+        BEGIN
+           SELECT 'EL CLIENTE INGRESADO NO EXISTE';
 
-        INSERT INTO dbo.orden (idCliente, idEstado, fechaOrden, descripcion, fechaEntrega, anticipo,total)
-        VALUES (@idCliente, @idEstado, @fechaOrden, @descripcion, @fechaEntrega, @anticipo, @total);
+        END
     END
     ELSE IF(@accion = 'actualizar')
     BEGIN
@@ -218,3 +225,30 @@ INSERT INTO estado(nombre) VALUES ('listo');
 INSERT INTO estado(nombre) VALUES ('entregado');
 SELECT * from estado;
 select * from estado;
+
+
+select * from clientes;
+
+EXEC accionClientes 'insertar','3748392',53574837,'Juan','','Perez','Lopez','Xela'
+
+EXEC accionClientes 'insertar','3847382',83746593,'María','Rodríguez','García','Flores','Escuintla'
+EXEC accionClientes 'insertar','7465938',29485623,'Luis','Hernández','Martínez','Vargas','Quetzaltenango'
+EXEC accionClientes 'insertar','9837498',54732974,'Pedro','González','López','Guerra','Guatemala'
+EXEC accionClientes 'insertar','6574839',58374629,'Ana','Pérez','López','Méndez','Chimaltenango'
+EXEC accionClientes 'insertar','8392746',46382947,'Carlos','Gómez','Sánchez','Díaz','Sacatepéquez'
+EXEC accionClientes 'insertar','2349857',29384756,'Laura','Morales','Méndez','Pérez','Alta Verapaz'
+EXEC accionClientes 'insertar','5674832',29384759,'Manuel','Guzmán','García','Lara','Suchitepéquez'
+EXEC accionClientes 'insertar','8746293',29384762,'Sofía','López','Castillo','Cabrera','Petén'
+EXEC accionClientes 'insertar','2938475',29384765,'Miguel','Ortiz','González','Santos','Izabal'
+EXEC accionClientes 'insertar','4758392',29384768,'Isabella','Castro','Chávez','Silva','Jutiapa'
+
+
+select * from orden:
+EXEC accionOrden 'insertar',NULL,74644,null,'2023-06-01','Primera orden','2023-06-23',100,500
+
+
+
+SELECT COUNT(*) FROM clientes where nit = 74644;
+select * from clientes where nit =74644;
+SELECT * FROM orden;
+select GETDATE();
