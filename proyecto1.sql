@@ -212,3 +212,4 @@ INSERT INTO estado(nombre) VALUES ('impresion');
 INSERT INTO estado(nombre) VALUES ('listo');
 INSERT INTO estado(nombre) VALUES ('entregado');
 SELECT * from estado;
+select * from estado;
