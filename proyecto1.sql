@@ -147,8 +147,7 @@ AS
                 SELECT 'La orden tiene saldo 0';
             END
         END
-        ELSE IF (@idEstado = 5 AND ((SELECT total FROM orden WHERE idOrden = @idOrden) =
-                                    (SELECT saldo FROM orden WHERE idOrden = @idOrden)))
+        ELSE IF (@idEstado = 5 AND ((SELECT saldo FROM orden WHERE idOrden = @idOrden) = 0))
         BEGIN
             UPDATE dbo.orden SET idEstado = @idEstado WHERE idOrden = @idOrden;
         END
@@ -264,7 +263,7 @@ EXEC accionOrden 'insertar',NULL,8392746,NULL,'2023-06-01','Cuarta orden','2023-
 EXEC accionOrden 'insertar',NULL,7465938,NULL,'2023-06-01','Quinta orden','2023-06-23',250,900
 EXEC accionOrden 'insertar',NULL,3847382,NULL,'2023-06-01','Sexta orden','2023-06-23',400,1000
 
-EXEC accionOrden 'actualizar',1,null,3,null,null,null,100,null
+EXEC accionOrden 'actualizar',1,null,5,null,null,null,100,null
 
 
 SELECT COUNT(*) FROM clientes where nit = 74644;
