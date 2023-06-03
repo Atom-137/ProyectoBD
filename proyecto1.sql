@@ -134,17 +134,31 @@ AS
         IF(@idEstado != 5)
         BEGIN
             UPDATE dbo.orden SET idEstado = @idEstado WHERE idOrden = @idOrden;
+              IF(@anticipo > 0 AND ((SELECT saldo FROM orden WHERE idOrden = 1) != 0))
+            BEGIN
+                 DECLARE @totalAux money    = (SELECT total FROM orden where idOrden = @idOrden)
+                 DECLARE @anticipoAux money = ((SELECT anticipo FROM orden where idOrden = @idOrden) + @anticipo)
+                 UPDATE dbo.orden SET saldo =  dbo.devolverSaldo(@totalAux , @anticipoAux ),
+                                      anticipo =  ((SELECT anticipo FROM orden where idOrden = @idOrden) + @anticipo)
+                                  WHERE idOrden = @idOrden;
+            END
+            ELSE
+            BEGIN
+                SELECT 'La orden tiene saldo 0';
+            END
         END
-        ELSE IF (@idEstado = 5 AND ((SELECT total FROM orden) = (SELECT saldo FROM orden)))
+        ELSE IF (@idEstado = 5 AND ((SELECT total FROM orden WHERE idOrden = @idOrden) =
+                                    (SELECT saldo FROM orden WHERE idOrden = @idOrden)))
         BEGIN
             UPDATE dbo.orden SET idEstado = @idEstado WHERE idOrden = @idOrden;
         END
         ELSE
             SELECT 'La orden tiene saldo pendiente';
     END
-    ELSE IF(@accion = 'eliminar')
+
+    ELSE IF (@accion = 'eliminar')
     BEGIN
-        DELETE FROM dbo.orden WHERE idOrden = @idOrden;
+        DELETE FROM dbo.orden WHERE idOrden = @idOrden
     END
 GO;
 
@@ -197,7 +211,7 @@ BEGIN
 END;
 
 
-CREATE TRIGGER actualizarOrden
+ALTER TRIGGER actualizarOrden
     ON orden
     AFTER INSERT
 AS
@@ -243,12 +257,20 @@ EXEC accionClientes 'insertar','2938475',29384765,'Miguel','Ortiz','González','
 EXEC accionClientes 'insertar','4758392',29384768,'Isabella','Castro','Chávez','Silva','Jutiapa'
 
 
-select * from orden:
 EXEC accionOrden 'insertar',NULL,74644,null,'2023-06-01','Primera orden','2023-06-23',100,500
+EXEC accionOrden 'insertar',NULL,4758392,NULL,'2023-06-01','Segunda orden','2023-06-23',200,700
+EXEC accionOrden 'insertar',NULL,2938475,NULL,'2023-06-01','Tercera orden','2023-06-23',150,600
+EXEC accionOrden 'insertar',NULL,8392746,NULL,'2023-06-01','Cuarta orden','2023-06-23',300,800
+EXEC accionOrden 'insertar',NULL,7465938,NULL,'2023-06-01','Quinta orden','2023-06-23',250,900
+EXEC accionOrden 'insertar',NULL,3847382,NULL,'2023-06-01','Sexta orden','2023-06-23',400,1000
 
+EXEC accionOrden 'actualizar',1,null,3,null,null,null,100,null
 
 
 SELECT COUNT(*) FROM clientes where nit = 74644;
-select * from clientes where nit =74644;
-SELECT * FROM orden;
+select * from clientes where nit = 74644;
+SELECT * FROM orden where idOrden = 1;
 select GETDATE();
+
+select * from estado;
+
